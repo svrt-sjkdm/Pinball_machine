@@ -26,7 +26,7 @@ TECLAS MOVIMIENTO FLIPPERS
 ------------------------------------------
 TECLA CAMBIO DE CAMARA 
 ------------------------------------------
-0 == CAMBIAR VISTA DE CAMARA
+0 -- CAMBIAR VISTA DE CAMARA
 */
 
 #include "Main.h"
@@ -102,13 +102,14 @@ bool canica_1 = true;
 bool canica_3 = true;
 float canX = 0, canZ = 0;
 
+// Animacion
+bool resorte = false;
+bool up = false;
+
 // --- Fuente de luz propiedades
 bool luz_1 = true;
 bool luz_2 = true;
 bool luz_3 = true;
-// Animacion
-bool resorte = false;
-bool up = false;
 
 GLfloat Light_ambient[] = { 0.7695, 0.7890, 0.8281, 1.0 };
 GLfloat Light_diffuse[] = { 0.7812, 0.8398, 0.9453, 1.0 };
@@ -167,54 +168,6 @@ bool flip1 = false;
 bool flip2 = false;
 bool flip3 = false;
 
-void triangle() {
-	
-	GLfloat frontFace[3][3]{
-		0.0, 0.0, 0.0,
-		0.0, 0.0, 1.0,
-		0.0, 1.0, 1.0
-	};
-
-	GLfloat backFace[3][3]{
-		-1.0, 0.0, 0.0,
-		-1.0, 0.0, 1.0,
-		-1.0, 1.0, 1.0
-	};
-	// Cara 1
-	glBegin(GL_POLYGON);
-	glVertex3fv(frontFace[0]);
-	glVertex3fv(frontFace[1]);
-	glVertex3fv(frontFace[2]);
-	glEnd();
-	// Cara 2
-	glBegin(GL_POLYGON);
-	glVertex3fv(backFace[0]);
-	glVertex3fv(backFace[1]);
-	glVertex3fv(backFace[2]);
-	glEnd();
-	// Cara 3
-	glBegin(GL_POLYGON);
-	glVertex3fv(frontFace[1]);
-	glVertex3fv(frontFace[2]);
-	glVertex3fv(backFace[2]);
-	glVertex3fv(backFace[1]);
-	glEnd();
-	// Cara 4
-	glBegin(GL_POLYGON);
-	glVertex3fv(frontFace[0]);
-	glVertex3fv(backFace[0]);
-	glVertex3fv(backFace[2]);
-	glVertex3fv(frontFace[2]);
-	glEnd();
-	// Cara 5
-	glBegin(GL_POLYGON);
-	glVertex3fv(frontFace[0]);
-	glVertex3fv(backFace[0]);
-	glVertex3fv(backFace[1]);
-	glVertex3fv(frontFace[1]);
-	glEnd();
-}
-
 void flipper() {
 
 	float v4 = 12.0;
@@ -272,6 +225,54 @@ void flipper() {
 	glVertex3f(-3.0, 0.0, 0.0);  // v1
 	glVertex3f(-3.0, 0.0, -0.25);  // v1
 	glVertex3f(-2.5, -2.0, 0.0);   // v6
+	glEnd();
+}
+
+void triangle() {
+	
+	GLfloat frontFace[3][3]{
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 1.0,
+		0.0, 1.0, 1.0
+	};
+
+	GLfloat backFace[3][3]{
+		-1.0, 0.0, 0.0,
+		-1.0, 0.0, 1.0,
+		-1.0, 1.0, 1.0
+	};
+	// Cara 1
+	glBegin(GL_POLYGON);
+	glVertex3fv(frontFace[0]);
+	glVertex3fv(frontFace[1]);
+	glVertex3fv(frontFace[2]);
+	glEnd();
+	// Cara 2
+	glBegin(GL_POLYGON);
+	glVertex3fv(backFace[0]);
+	glVertex3fv(backFace[1]);
+	glVertex3fv(backFace[2]);
+	glEnd();
+	// Cara 3
+	glBegin(GL_POLYGON);
+	glVertex3fv(frontFace[1]);
+	glVertex3fv(frontFace[2]);
+	glVertex3fv(backFace[2]);
+	glVertex3fv(backFace[1]);
+	glEnd();
+	// Cara 4
+	glBegin(GL_POLYGON);
+	glVertex3fv(frontFace[0]);
+	glVertex3fv(backFace[0]);
+	glVertex3fv(backFace[2]);
+	glVertex3fv(frontFace[2]);
+	glEnd();
+	// Cara 5
+	glBegin(GL_POLYGON);
+	glVertex3fv(frontFace[0]);
+	glVertex3fv(backFace[0]);
+	glVertex3fv(backFace[1]);
+	glVertex3fv(frontFace[1]);
 	glEnd();
 }
 
@@ -1263,8 +1264,6 @@ void display(void) {
 			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_silver);
 			glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess_silver);
 
-			// MAX RX = 42
-
 			glTranslatef(-22.5 - 18.5-4-2, 94.0 - 26.5, 39.0 + 85-2-2);
 			glRotatef(rotF1, 0.0, 1.0, 0.0);
 			glTranslatef(-(-22.5 - 18.5-4-2), -(94.0 - 26.5), -(39.0 + 85-2-2));
@@ -1293,12 +1292,9 @@ void display(void) {
 			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_silver);
 			glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess_silver);
 
-			// MAX RX = -42
-
 			glTranslatef(-7,67.5,121.5);
 			glRotatef(rotF2, 0.0, 1.0, 0.0);
 			glTranslatef(-(-7), -(67.5), -(121.5));
-
 
 			glTranslatef(33, 0.0, -2.0);
 			glTranslatef(-22.5 - 18.5, 94.0 - 26.5, 39.0 + 85);
@@ -1326,7 +1322,6 @@ void display(void) {
 			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_silver);
 			glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess_silver);
 
-			// MAX RX = 42
 			glTranslatef(-38,73.5,69);
 			glRotatef(rotF3, 0.0, 1.0, 0.0);
 			glTranslatef(38,-73.5,-69);
@@ -1620,7 +1615,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3, 86, 143.5);
 			glScalef(0.01*2, 0.01*2, 0.01*2);
-			//sship.GLrender(NULL, _SHADED, 1.0);
+			sship.GLrender(NULL, _SHADED, 1.0);
 			glPopMatrix();
 			// Objeto 3ds 1 (instancia 2)
 			glPushMatrix();
@@ -1634,7 +1629,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3, 86, 143.5);
 			glScalef(0.01 * 2, 0.01 * 2, 0.01 * 2);
-			//sship.GLrender(NULL, _SHADED, 1.0);
+			sship.GLrender(NULL, _SHADED, 1.0);
 			glPopMatrix();
 
 			// Objeto 3ds 2 (instancia 2)
@@ -1652,7 +1647,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3,86,143.5);
 			glScalef(0.01*2,0.01*2,0.01*2);
-			//space.GLrender(NULL,_SHADED,1.0);
+			space.GLrender(NULL,_SHADED,1.0);
 			glPopMatrix();
 
 			// Objeto 3ds 2 (instancia 2)
@@ -1670,7 +1665,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3, 86, 143.5);
 			glScalef(0.01 * 2, 0.01 * 2, 0.01 * 2);
-			//space.GLrender(NULL, _SHADED, 1.0);
+			space.GLrender(NULL, _SHADED, 1.0);
 			glPopMatrix();
 
 			// Superficie con textura 1
@@ -1745,7 +1740,7 @@ void display(void) {
 			block();
 			glPopMatrix();
 			
-			// B  >> MASTER <<
+			// B  
 			glPushMatrix();
 			glTranslatef(0, 0, movB);
 			glTranslatef(0, 0, -2);
@@ -1821,18 +1816,6 @@ void display(void) {
 			
 			
 			glPopMatrix();
-			// ==============================================================
-			/*
-			glPushMatrix();
-			glTranslatef(-3+Cx, 86+Cy, 143.5+Cz);
-			glRotatef(6, 1,0,0);
-			glTranslatef(-(-3 + Cx), -(86 + Cy), -(143.5 + Cz));
-			glTranslatef(-3+Cx, 86+Cy, 143.5+Cz);
-			glScalef(Sx, 3, Sz);
-			cube();
-			glPopMatrix();
-			*/
-			// ===========================================================
 
 			// Canica 1
 			glPushMatrix();
@@ -1844,7 +1827,8 @@ void display(void) {
 			glPopMatrix();  // FIN DEL TABLERO ----------------
 
 
-		glPopMatrix(); // FIN DE LA MESA
+		glPopMatrix(); 
+		// ================================== FIN DE LA MESA =======================================================
 
 	glPopMatrix(); // -----------------
 
