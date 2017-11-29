@@ -27,6 +27,12 @@ TECLAS MOVIMIENTO FLIPPERS
 TECLA CAMBIO DE CAMARA 
 ------------------------------------------
 0 -- CAMBIAR VISTA DE CAMARA
+------------------------------------------
+CONTROL DE LAS CANICAS
+------------------------------------------
+Click derecho mouse -- Activar animacion canica 1
+P/p ------------------ Activar animacion canica 2
+
 */
 
 #include "Main.h"
@@ -60,7 +66,7 @@ CFiguras palanca;
 CFiguras sup1;
 CFiguras sup2;
 CFiguras sup3;
-
+CFiguras canica2;
 // Texturas 
 CTexture cabRnM;
 CTexture glass;
@@ -99,8 +105,9 @@ GLfloat g_lookupdown = 0.0f;
 
 // Canicas
 bool canica_1 = true;
-bool canica_3 = true;
-float canX = 0, canZ = 0;
+bool canica_2 = true;
+bool start_1 = false;
+float cx1 = 0, cy1 = 0, cz1 = 0;
 
 // Animacion
 bool resorte = false;
@@ -158,7 +165,7 @@ GLfloat mat_shininess_silver[] = { 89.6f };
 // Movimiento resorte
 float movB = 0, movC = 0, movD = 0, movE = 0;
 float _movB = 0, _movC = 0, _movD = 0, _movE = 0;
-int i = 0, k = 0;
+int i = 0, k = 0, j = 0;
 float movPal = 0;
 // Movimiento flippers
 float rotF1 = 0;
@@ -167,6 +174,37 @@ float rotF3 = 0;
 bool flip1 = false;
 bool flip2 = false;
 bool flip3 = false;
+
+// ++++++++ FRAMES ++++++++++++++++++++++++++++++++++++++++
+//#define MAX_FRAMES 20   // Numero de cuadros a capturar
+//int i_max_steps = 90;  // Numero de interpolaciones
+#define MAX_FRAMES 20   // Numero de cuadros a capturar
+int i_max_steps = 90;  // Numero de interpolaciones
+int i_curr_steps = 0;
+float XCan = 0, YCan = 0, ZCan = 0;
+typedef struct _frame
+{
+	float XCan;
+	float incXCan;
+	float YCan;
+	float incYCan;
+	float ZCan;
+	float incZCan;
+
+}FRAME;
+
+FRAME KeyFrame[MAX_FRAMES];
+//int FrameIndex = 5;			//introducir datos
+int FrameIndex = 20;			//introducir datos
+bool play = false;
+int playIndex = 0;
+
+int w = 500, h = 500;
+int frame = 0, time, timebase = 0;
+char s[30];
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 void flipper() {
 
@@ -1206,10 +1244,10 @@ void display(void) {
 			glPopMatrix();
 			// Parte B
 			glPushMatrix();
-			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_obsidian);
-			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse_obsidian);
-			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_obsidian);
-			glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess_obsidian);
+			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_chrome);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse_chrome);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular_chrome);
+			glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess_chrome);
 			glTranslatef(-25.0, 115.0, 9.5);
 			glScalef(60.0, 60.0, 30.0);
 			glRotatef(180.0, 0.0, 1.0, 0.0);
@@ -1256,7 +1294,7 @@ void display(void) {
 			tablero.prisma2(tabTextmain.GLindex, back1.GLindex);
 			glEnable(GL_LIGHTING);
 			glPopMatrix();
-
+			
 			// Flipper 1
 			glPushMatrix();
 			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_silver);
@@ -1615,7 +1653,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3, 86, 143.5);
 			glScalef(0.01*2, 0.01*2, 0.01*2);
-			sship.GLrender(NULL, _SHADED, 1.0);
+			//sship.GLrender(NULL, _SHADED, 1.0);
 			glPopMatrix();
 			// Objeto 3ds 1 (instancia 2)
 			glPushMatrix();
@@ -1629,7 +1667,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3, 86, 143.5);
 			glScalef(0.01 * 2, 0.01 * 2, 0.01 * 2);
-			sship.GLrender(NULL, _SHADED, 1.0);
+			//sship.GLrender(NULL, _SHADED, 1.0);
 			glPopMatrix();
 
 			// Objeto 3ds 2 (instancia 2)
@@ -1647,7 +1685,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3,86,143.5);
 			glScalef(0.01*2,0.01*2,0.01*2);
-			space.GLrender(NULL,_SHADED,1.0);
+			//space.GLrender(NULL,_SHADED,1.0);
 			glPopMatrix();
 
 			// Objeto 3ds 2 (instancia 2)
@@ -1665,7 +1703,7 @@ void display(void) {
 			glTranslatef(3, -86, -143.5);
 			glTranslatef(-3, 86, 143.5);
 			glScalef(0.01 * 2, 0.01 * 2, 0.01 * 2);
-			space.GLrender(NULL, _SHADED, 1.0);
+			//space.GLrender(NULL, _SHADED, 1.0);
 			glPopMatrix();
 
 			// Superficie con textura 1
@@ -1818,10 +1856,30 @@ void display(void) {
 			glPopMatrix();
 
 			// Canica 1
+			// Incremento en y = 0.1051
 			glPushMatrix();
+			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_silver);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_ambient_silver);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_ambient_silver);
+			glMaterialfv(GL_FRONT, GL_SHININESS, mat_ambient_silver);
+			glTranslatef(cx1, cy1, cz1);
 			glTranslatef(4.5,-19.3,-11);
 			glTranslatef(-3,86,143.5);
 			c1_.esfera(0.5, 50, 50, 0);
+			glPopMatrix();
+
+			// Canica 2
+			// Incremento en y = 0.1051
+			glPushMatrix();
+			glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient_silver);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_ambient_silver);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, mat_ambient_silver);
+			glMaterialfv(GL_FRONT, GL_SHININESS, mat_ambient_silver);
+			glTranslatef(Cx, Cy, Cz);
+			glTranslatef(XCan, YCan, ZCan);
+			glTranslatef(6.0, -19.3, -11);
+			glTranslatef(-3, 86, 143.5);
+			canica2.esfera(0.5, 50, 50, 0);
 			glPopMatrix();
 
 			glPopMatrix();  // FIN DEL TABLERO ----------------
@@ -1889,11 +1947,12 @@ void animacion() {
 				movPal -= 0.1;
 			else
 				movPal -= 0;
-
+			// Palanca regresa a su posicion original
 			if (i == 61) {
 				i = 0;
 				up = false;
 				resorte = false;
+				start_1 = true;
 			}
 			else 
 				i += 1;
@@ -1930,13 +1989,18 @@ void animacion() {
 				_movD += 0.001;
 			else
 				_movD += 0;
-
 			// Palanca
 			if (i < 3000)
 				movPal += 0.001;
 			else
 				movPal += 0;
-
+			// Movimiento de la canica
+			/*
+				cx1 = 0;
+				cy1 += -0.001051;
+				cz1 += 0.01;
+			*/
+			// Palanca totalmente comprimida
 			if (i == 5738) {
 				up = true;
 				i = 0;
@@ -1945,6 +2009,133 @@ void animacion() {
 		}
 	}
 
+	if (canica_1) {
+		// Baja junto con el resorte
+		if (!up && resorte == true && start_1 == false) {
+			if (i < 5693) {
+				cx1 = 0;
+				cy1 += -1.051e-4;
+				cz1 += 0.001;
+			}
+			else {
+				//cx1 += 0;
+				//cy1 += 0;
+				//cz1 += 0;
+			}
+		} 
+		// Canica sube
+		else if (up && resorte == true && start_1 == false) {
+			if (i < 200) {
+				cx1 = 0;
+				cy1 += 0.01051;
+				cz1 -= 0.1;
+			}
+			else {
+				cx1 = 0;
+				cy1 += 0;
+				cz1 += 0;
+			}
+
+		}
+		else if (start_1){
+
+			if (j < 855) {
+				cx1 = 0;
+				cy1 += 0.01051;
+				cz1 -= 0.1;
+			}
+			else if (j < 1090) {
+				cx1 -= 0.1;
+				cy1 += 0.01051;
+				cz1 -= 0.05;
+			}
+			else if (j < 1213) {
+				cx1 -= 0.1;
+				cy1 -= 0.01051;
+				cz1 += 0.049;
+			}
+			else if (j < 1328) {
+				cx1 -= 0.1;
+				cy1 += 0;
+				cz1 += 0;
+			}
+			else if (j < 1374) {
+				cx1 -= 0.1;
+				cy1 -= 0.0210;
+				cz1 += 0.2;
+			}
+			else if (j < 1423) {
+				cx1 += 0.1;
+				cy1 -= 0.0210;
+				cz1 += 0.2;
+			}
+			else if (j < 1464) {
+				cx1 -= 0.1;
+				cy1 -= 0.0210;
+				cz1 += 0.2;
+			}
+			else if (j < 1618) {
+				cx1 += 0.1;
+				cy1 -= 0.0210;
+				cz1 += 0.2;
+			}
+			else if (j < 1784) {
+				cx1 += 0.05;
+				cy1 -= 0.0210;
+				cz1 += 0.2;
+			}
+			else if (j == 1784) {
+				cx1 = 0;
+				cy1 = 0;
+				cz1 = 0;
+				start_1 = false;
+				j = 0;
+			}
+			else {
+				cx1 = 27.4001;
+				cy1 = -0.7;
+				cz1 = 0.4;
+			}
+
+			if (j != 1784)
+				j += 1;
+		}
+	}
+
+	if (play) {
+		if (i_curr_steps >= i_max_steps) //end of animation between frames?
+		{
+			playIndex++;
+			if (playIndex>FrameIndex - 2)	//end of total animation?
+			{
+				cout << "..." << endl;
+				playIndex = 0;
+				play = false;
+			}
+			else //Next frame interpolations
+			{
+				i_curr_steps = 0; //Reset counter
+								  //Interpolation
+				KeyFrame[playIndex].incXCan = (KeyFrame[playIndex + 1].XCan - KeyFrame[playIndex].XCan) / i_max_steps;		//100 frames
+				KeyFrame[playIndex].incYCan = (KeyFrame[playIndex + 1].YCan - KeyFrame[playIndex].YCan) / i_max_steps;		//100 frames
+				KeyFrame[playIndex].incZCan = (KeyFrame[playIndex + 1].ZCan - KeyFrame[playIndex].ZCan) / i_max_steps;		//100 frames
+			}
+		}
+		else
+		{	//Draw information
+			XCan += KeyFrame[playIndex].incXCan;
+			YCan += KeyFrame[playIndex].incYCan;
+			ZCan += KeyFrame[playIndex].incZCan;
+			i_curr_steps++;
+		}
+	}
+	frame++;
+	time = glutGet(GLUT_ELAPSED_TIME);
+	if (time - timebase > 1000) {
+		sprintf(s, "FPS:%4.2f", frame*1000.0 / (time - timebase));
+		timebase = time;
+		frame = 0;
+	}
 	
 	glutPostRedisplay();
 }
@@ -2051,6 +2242,71 @@ void InitGL(GLvoid) {
 	objCamera.Position_Camera(-24, 91.5, 165.5, -24, 31, 0, 0, 1, 0);
 	objCamera_2.Position_Camera(-24.5, 75.5, 49.5, -48, 66.5, 376, 0, 1, 0); 
 
+
+	KeyFrame[0].XCan = 0;
+	KeyFrame[0].YCan = 0;
+	KeyFrame[0].ZCan = 0;
+
+	KeyFrame[1].XCan = 0;
+	KeyFrame[1].YCan = 9;
+	KeyFrame[1].ZCan = -85.6993;
+
+	KeyFrame[2].XCan = -18.8;
+	KeyFrame[2].YCan = 9;
+	KeyFrame[2].ZCan = -86.23993;
+
+	KeyFrame[3].XCan = -6.6;
+	KeyFrame[3].YCan = 6.9;
+	KeyFrame[3].ZCan = -65.5996;
+
+	KeyFrame[4].XCan = -10.5;
+	KeyFrame[4].YCan = 6.2;
+	KeyFrame[4].ZCan = -58.8997;
+
+	KeyFrame[5].XCan = -10.5;
+	KeyFrame[5].YCan = 6.3;
+	KeyFrame[5].ZCan = -45.9999;
+
+	KeyFrame[6].XCan = -14.7;
+	KeyFrame[6].YCan = 5.6;
+	KeyFrame[6].ZCan = -50.9998;
+
+	KeyFrame[7].XCan = -16.1;
+	KeyFrame[7].YCan = 3.7;
+	KeyFrame[7].ZCan = -36.1;
+
+	KeyFrame[8].XCan = -6.6;
+	KeyFrame[8].YCan = 3.3;
+	KeyFrame[8].ZCan = -32.0001;
+
+	KeyFrame[9].XCan = -7.89;
+	KeyFrame[9].YCan = 3.2;
+	KeyFrame[9].ZCan = -25.2;
+
+	KeyFrame[10].XCan = -6.7;
+	KeyFrame[10].YCan = 2.1;
+	KeyFrame[10].ZCan = -21.2;
+
+	KeyFrame[11].XCan = -7.89;
+	KeyFrame[11].YCan = 1.6;
+	KeyFrame[11].ZCan = -14.7;
+
+	KeyFrame[12].XCan = -6.5;
+	KeyFrame[12].YCan = 0.9;
+	KeyFrame[12].ZCan = -7.599;
+
+	KeyFrame[13].XCan = -24.1001;
+	KeyFrame[13].YCan = -0.5;
+	KeyFrame[13].ZCan = -0.99;
+
+	KeyFrame[14].XCan = -24.1001;
+	KeyFrame[14].YCan = -5.0;
+	KeyFrame[14].ZCan = -0.99;
+
+	KeyFrame[14].XCan = 0;
+	KeyFrame[14].YCan = -3.0;
+	KeyFrame[14].ZCan = 0;
+
 }
 
 void reshape(int width, int height) {
@@ -2073,6 +2329,10 @@ void keyboard(unsigned char key, int x, int y) {
 
 	switch (key) {
 	// Control de luces
+	case 'c':
+	case 'C':
+		canica_1 = !canica_1;
+		break;
 	case '1':
 		luz_1 = !luz_1;
 		if (luz_1)
@@ -2093,15 +2353,6 @@ void keyboard(unsigned char key, int x, int y) {
 			cout << "Luz 3 encendida" << endl;
 		else
 			cout << "Luz 3 apagada" << endl;
-		break;
-	// Control del resorte
-	case 'r':
-	case 'R':
-		resorte = !resorte;
-		if (resorte)
-			cout << "Resorte activado" << endl;
-		else
-			cout << "Resorte desactivado" << endl;
 		break;
 	// Camara
 	case '0':
@@ -2191,6 +2442,29 @@ void keyboard(unsigned char key, int x, int y) {
 		else
 			rotF3 = 0;
 		break;
+	// Canica 2 
+	case 'p':
+	case 'P':
+		if (play == false && (FrameIndex>1)) {
+
+			XCan = KeyFrame[0].XCan;
+			YCan = KeyFrame[0].YCan;
+			ZCan = KeyFrame[0].ZCan;
+
+			//First Interpolation
+			KeyFrame[playIndex].incXCan = (KeyFrame[playIndex + 1].XCan - KeyFrame[playIndex].XCan) / i_max_steps;		//100 frames
+			KeyFrame[playIndex].incYCan = (KeyFrame[playIndex + 1].YCan - KeyFrame[playIndex].YCan) / i_max_steps;		//100 frames
+			KeyFrame[playIndex].incZCan = (KeyFrame[playIndex + 1].ZCan - KeyFrame[playIndex].ZCan) / i_max_steps;		//100 frames
+
+			play = true;
+			playIndex = 0;
+			i_curr_steps = 0;
+		}
+		else
+		{
+			play = false;
+		}
+		break;
 	case 27:
 		exit(0);
 		break;
@@ -2263,7 +2537,7 @@ void arrow_keys(int a_keys, int x, int y) {
 
 void mouse(int button, int state, int x, int y) {
 
-	if (button == GLUT_RIGHT_BUTTON) {
+	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 		resorte = !resorte;
 	}
 
